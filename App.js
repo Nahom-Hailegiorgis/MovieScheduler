@@ -13,25 +13,31 @@ const { width, height } = Dimensions.get("window");
 
 export default function App() {
   const basePoints = {
-    2: 5,
-    3: 4,
-    4: 5,
-    5: 3,
-    6: 3,
-    7: 1,
-    8: 2,
-    9: 1,
+    "2pm": 5,
+    "3pm": 4,
+    "4pm": 5,
+    "5pm": 3,
+    "6pm": 3,
+    "7pm": 1,
+    "8pm": 2,
+    "9pm": 1,
   };
 
   const [first, changeFirst] = useState("");
   const [second, changeSecond] = useState("");
   const [third, changeThird] = useState("");
 
-  const [finalFirst, setfinalFirst] = useState("1st: ");
-  const [finalSecond, setFinalSecond] = useState("2nd: ");
-  const [finalThird, setFinalThird] = useState("3rd: ");
-  const [finalFourth, setFinalFourth] = useState("4th: ");
-  const [finalFifth, setFinalFifth] = useState("5th: ");
+  const [finalFirst, setFinalFirst] = useState();
+  const [finalSecond, setFinalSecond] = useState();
+  const [finalThird, setFinalThird] = useState();
+  const [finalFourth, setFinalFourth] = useState();
+  const [finalFifth, setFinalFifth] = useState();
+
+  const [finalMovieFirst, setFinalMovieFirst] = useState();
+  const [finalMovieSecond, setFinalMovieSecond] = useState();
+  const [finalMovieThird, setFinalMovieThird] = useState();
+  const [finalMovieFourth, setFinalMovieFourth] = useState();
+  const [finalMovieFifth, setFinalMovieFifth] = useState();
 
   const [firstBorderColor, setfirstBorderColor] = useState(
     "rgba(173, 122, 153, .1)"
@@ -54,7 +60,7 @@ export default function App() {
   };
 
   const validNumbers = ["2", "4", "6", "8", "3", "5", "7", "9"];
-  const regex = /^([2-9])\s(pm)$/;
+  const regex = /^([2-9])pm$/;
 
   const validatefirstTime = (time) => {
     if (!regex.test(time)) {
@@ -106,71 +112,67 @@ export default function App() {
     const issecondValid = validatesecondTime(second);
     const isthirdValid = validatethirdTime(third);
 
-    if (isfirstValid && issecondValid && isthirdValid) {
-      const selectedTimes = [
-        { time: first, points: basePoints[first] + 3 }, // 3 points for first selection
-        { time: second, points: basePoints[second] + 2 }, // 2 points for second selection
-        { time: third, points: basePoints[third] + 1 }, // 1 point for third selection
-      ];
-
-      // Get all times with their base points
-      const allTimes = Object.keys(basePoints).map((time) => ({
-        time: parseInt(time), // Convert the time key to integer
-        points: basePoints[time],
-      }));
-
-      // Merge selectedTimes into allTimes (Update the points based on the selections)
-      selectedTimes.forEach((selected) => {
-        const index = allTimes.findIndex((item) => item.time === selected.time);
-        if (index !== -1) {
-          allTimes[index].points += selected.points - basePoints[selected.time];
-        }
-      });
-
-      // Sort times by points in descending order
-      const sortedTimesByPoints = allTimes.sort((a, b) => b.points - a.points);
-
-      // Get the top 5 based on points
-      const top5Times = sortedTimesByPoints.slice(0, 5);
-
-      // Sort the top 5 by their original 'time' value (earliest to latest)
-      top5Times.sort((a, b) => a.time - b.time); // Sort chronologically
-
-      // Set the top 5 in the final results
-      setfinalFirst(`${top5Times[0]?.time || "N/A"} pm`);
-      setFinalSecond(`${top5Times[1]?.time || "N/A"} pm`);
-      setFinalThird(`${top5Times[2]?.time || "N/A"} pm`);
-      setFinalFourth(`${top5Times[3]?.time || "N/A"} pm`);
-      setFinalFifth(`${top5Times[4]?.time || "N/A"} pm`);
-
-      // Display results in alert
-      Alert.alert(
-        "Top 5 Times",
-        `1st: ${top5Times[0]?.time}, 2nd: ${top5Times[1]?.time}, 3rd: ${top5Times[2]?.time}`
-      );
-    } else {
+    if (!(isfirstValid && issecondValid && isthirdValid)) {
       Alert.alert("Invalid Time", "Please enter a valid time like '3pm'.");
+      return;
     }
+
+    const bonusPoints = {
+      [first]: 3,
+      [second]: 2,
+      [third]: 1,
+    };
+
+    const totalPoints = {};
+    Object.keys(basePoints).forEach((time) => {
+      totalPoints[time] = basePoints[time] + (bonusPoints[time] || 0);
+    });
+
+    console.log("Total Points:", totalPoints);
+
+    const topTimes = Object.entries(totalPoints)
+      .sort((a, b) => b[1] - a[1]) // sort by total points descending
+      .slice(0, 5)
+      .map(([time]) => time);
+
+    console.log("Top 5 Times by Points:", topTimes);
+
+    const timeOrder = ["2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm"];
+    const sortedTopTimes = [...topTimes].sort(
+      (a, b) => timeOrder.indexOf(a) - timeOrder.indexOf(b)
+    );
+
+    console.log("Top 5 Times by Actual Time:", sortedTopTimes);
+
+    // Set final point order
+    setFinalFirst(topTimes[0]);
+    setFinalSecond(topTimes[1]);
+    setFinalThird(topTimes[2]);
+    setFinalFourth(topTimes[3]);
+    setFinalFifth(topTimes[4]);
+
+    // Set final movie order
+    setFinalMovieFirst(sortedTopTimes[0]);
+    setFinalMovieSecond(sortedTopTimes[1]);
+    setFinalMovieThird(sortedTopTimes[2]);
+    setFinalMovieFourth(sortedTopTimes[3]);
+    setFinalMovieFifth(sortedTopTimes[4]);
+
+    // Log final results
+    console.log("Final Rankings by Points:");
+    console.log("1st:", topTimes[0]);
+    console.log("2nd:", topTimes[1]);
+    console.log("3rd:", topTimes[2]);
+    console.log("4th:", topTimes[3]);
+    console.log("5th:", topTimes[4]);
+
+    console.log("Final Movie Schedule (Earliest to Latest):");
+    console.log("First Movie:", sortedTopTimes[0]);
+    console.log("Second Movie:", sortedTopTimes[1]);
+    console.log("Third Movie:", sortedTopTimes[2]);
+    console.log("Fourth Movie:", sortedTopTimes[3]);
+    console.log("Fifth Movie:", sortedTopTimes[4]);
   };
-
-  function convertTimeToDate(time) {
-    // Assuming the time is in format "h:mm am/pm" (e.g., "3:00 pm", "12:30 am")
-    const [hourMinute, period] = time.split(" "); // Split time and period (AM/PM)
-    let [hour, minute] = hourMinute.split(":").map(Number); // Split hour and minute
-
-    // Convert 12-hour time format to 24-hour time format
-    if (period.toLowerCase() === "pm" && hour < 12) {
-      hour += 12; // Convert PM hours
-    } else if (period.toLowerCase() === "am" && hour === 12) {
-      hour = 0; // Convert 12 AM to 00
-    }
-
-    // Create a Date object with the time values
-    const timeString = `1970-01-01T${String(hour).padStart(2, "0")}:${String(
-      minute
-    ).padStart(2, "0")}:00Z`;
-    return new Date(timeString).getTime(); // Return timestamp (milliseconds since epoch)
-  }
 
   return (
     <View style={styles.container}>
@@ -204,7 +206,7 @@ export default function App() {
           ]}
           value={first}
           maxLength={5}
-          placeholder="  pm"
+          placeholder=" pm"
           placeholderTextColor={"#CC7178"}
           onBlur={(e) => validatefirstTime(e.nativeEvent.text)}
           onChangeText={setFirst}
@@ -217,7 +219,7 @@ export default function App() {
           ]}
           value={second}
           maxLength={5}
-          placeholder="  pm"
+          placeholder=" pm"
           placeholderTextColor={"#CC7178"}
           onBlur={(e) => validatesecondTime(e.nativeEvent.text)}
           onChangeText={setSecond}
@@ -234,7 +236,7 @@ export default function App() {
           ]}
           value={third}
           maxLength={5}
-          placeholder="  pm"
+          placeholder=" pm"
           placeholderTextColor={"#CC7178"}
           onBlur={(e) => validatethirdTime(e.nativeEvent.text)}
           onChangeText={setThird}
@@ -278,11 +280,11 @@ export default function App() {
         5 Movie Times:
       </Text>
       <View style={styles.rowed_options}>
-        <Text style={styles.finals}>{finalFirst}</Text>
-        <Text style={styles.finals}>{finalSecond}</Text>
-        <Text style={styles.finals}>{finalThird}</Text>
-        <Text style={styles.finals}>{finalFourth}</Text>
-        <Text style={styles.finals}>{finalFifth}</Text>
+        <Text style={styles.finals}>{finalMovieFirst}</Text>
+        <Text style={styles.finals}>{finalMovieSecond}</Text>
+        <Text style={styles.finals}>{finalMovieThird}</Text>
+        <Text style={styles.finals}>{finalMovieFourth}</Text>
+        <Text style={styles.finals}>{finalMovieFifth}</Text>
       </View>
       <View style={styles.footer_container}>
         <Text style={styles.footer}>
